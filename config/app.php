@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'https://sdo-travel-authority.vercel.app/'),
+    'url' => env('APP_URL', 'https://travel-authority-eta.vercel.app/'),
 
     /*
     |--------------------------------------------------------------------------
