@@ -101,7 +101,7 @@
   <div class="box">
     <i>This is to certify that the trip of the requesting employee satisfies all the minimum conditions for authorized official travel and that alternatives to travel are insufficient for purpose stated herein.</i>
     <div class="row">
-      <div class="who"><div class="sig"><img src="{{ Storage::disk('s3')->url($t->recommender_signature) }}}" alt=""></div><div class="nm">{{ $rec['name'] }}</div><div class="ds">{{ $rec['position'] }}</div><div class="en">Electronically signed {{ $t->recommended_at?->format('d/m/Y h:i A') }} to certify and recommend approval</div></div>
+      <div class="who"><div class="sig"><img src="{{ Storage::disk('s3')->url($t->recommender_signature) }}" alt=""></div><div class="nm">{{ $rec['name'] }}</div><div class="ds">{{ $rec['position'] }}</div><div class="en">Electronically signed {{ $t->recommended_at?->format('d/m/Y h:i A') }} to certify and recommend approval</div></div>
       <div class="dt"><div class="v">{{ $t->recommended_at?->format('d/m/Y') }}</div><div class="ds">Date</div></div>
     </div>
   </div>
