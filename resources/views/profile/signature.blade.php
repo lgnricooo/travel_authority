@@ -18,7 +18,7 @@
 </div></div>
 @endsection
 @push('scripts')
-<script src="https://jsdelivr.net"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 <script>
 const canvas = document.getElementById('pad');
 function resize() { const r = Math.max(window.devicePixelRatio || 1, 1); canvas.width = canvas.offsetWidth * r; canvas.height = 200 * r; canvas.getContext('2d').scale(r, r); }

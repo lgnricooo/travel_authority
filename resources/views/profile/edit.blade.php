@@ -73,12 +73,12 @@
 </div></div>
 @endsection
 @push('styles')
-<link href="https://jsdelivr.net" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
 <style>.ts-dropdown{z-index:2000}</style>
 @endpush
 @push('scripts')
-<script src="https://jsdelivr.net"></script>
-<script src="https://jsdelivr.net"></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 <script>
 document.querySelectorAll('select.ts-select').forEach(el => new TomSelect(el, {
   allowEmptyOption: true, maxOptions: 200, placeholder: el.dataset.ph || 'Search…',
