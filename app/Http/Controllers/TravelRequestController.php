@@ -53,7 +53,7 @@ class TravelRequestController extends Controller
             'approver_id' => $approver->id,
             'purpose' => $d['purpose'], 'host_of_activity' => $d['host_of_activity'], 'destination' => $d['destination'],
             'date_from' => $d['date_from'], 'date_to' => $d['date_to'], 'fund_source' => $d['fund_source'],
-            'memo_path' => $r->hasFile('memo') ? $r->file('memo')->store('memos', 'local') : null,
+            'memo_path' => $r->hasFile('memo') ? $r->file('memo')->store('memos', 's3') : null,
             'verification_code' => Str::upper(Str::random(10)),
         ]);
         $t->update([
@@ -108,20 +108,19 @@ class TravelRequestController extends Controller
         return response()->json(['message' => 'Request updated: ' . $t->fresh()->statusLabel(), 'redirect' => route('requests.index')]);
     }
 
-    /** Streams the memo only to people allowed to see the request (private storage). */
+    /** Streams the memo only to people allowed to see the request. */
     public function memo(Request $r, TravelRequest $travelRequest)
     {
         abort_unless($travelRequest->canView(auth()->user()), 403);
         abort_unless($travelRequest->memo_path, 404);
-        foreach (['local', 'public'] as $disk) { // 'public' covers memos saved by older versions
-            if (Storage::disk($disk)->exists($travelRequest->memo_path)) {
-                $path = Storage::disk($disk)->path($travelRequest->memo_path);
-                $name = $travelRequest->tracking_no . '-memo.' . pathinfo($path, PATHINFO_EXTENSION);
-                return $r->boolean('download')
-                    ? response()->download($path, $name)
-                    : response()->file($path, ['Content-Disposition' => 'inline; filename="' . $name . '"']);
-            }
+
+        if (Storage::disk('s3')->exists($travelRequest->memo_path)) {
+            $name = $travelRequest->tracking_no . '-memo.' . pathinfo($travelRequest->memo_path, PATHINFO_EXTENSION);
+            return $r->boolean('download')
+                ? Storage::disk('s3')->download($travelRequest->memo_path, $name)
+                : Storage::disk('s3')->response($travelRequest->memo_path, $name);
         }
+
         abort(404);
     }
 

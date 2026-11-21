@@ -7,7 +7,7 @@
     <p class="text-muted small">Draw your signature below. It is stamped on travel authorities you file, recommend, or approve.</p>
     @if($user->signature_path)
       <div class="mb-3"><div class="small text-muted">Current signature</div>
-        <img src="{{ asset('storage/'.$user->signature_path) }}?v={{ time() }}" class="border rounded bg-white p-2" style="max-height:100px"></div>
+        <img src="{{ Storage::disk('s3')->url($user->signature_path) }}?v={{ time() }}" class="border rounded bg-white p-2" style="max-height:100px"></div>
     @endif
     <canvas id="pad" class="border rounded bg-white w-100" height="200"></canvas>
     <div class="mt-3 d-flex gap-2">
@@ -18,7 +18,7 @@
 </div></div>
 @endsection
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script src="https://jsdelivr.net"></script>
 <script>
 const canvas = document.getElementById('pad');
 function resize() { const r = Math.max(window.devicePixelRatio || 1, 1); canvas.width = canvas.offsetWidth * r; canvas.height = 200 * r; canvas.getContext('2d').scale(r, r); }

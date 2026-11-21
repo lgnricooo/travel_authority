@@ -18,7 +18,7 @@ class SignatureController extends Controller
         }
         $u = auth()->user();
         $path = "signatures/user{$u->id}.png";
-        Storage::disk('public')->put($path, $bin);
+        Storage::disk('s3')->put($path, $bin);
         // A new or changed signature must be verified again by the focal person
         $u->update([
             'signature_path' => $path,

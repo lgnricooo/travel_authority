@@ -55,7 +55,7 @@
           @if($user->signature_verified_at)<span class="badge text-bg-success">Verified {{ $user->signature_verified_at->format('M d, Y') }}</span>
           @elseif($user->signature_undertaking_at)<span class="badge text-bg-warning">Awaiting verification by the administrator</span>
           @else<span class="badge text-bg-secondary">Not yet verified — please re-save it with the undertaking</span>@endif</div>
-        <img src="{{ asset('storage/'.$user->signature_path) }}?v={{ time() }}" class="border rounded bg-white p-2" style="max-height:100px"></div>
+        <img src="{{ Storage::disk('s3')->url($user->signature_path) }}?v={{ time() }}" class="border rounded bg-white p-2" style="max-height:100px"></div>
     @endif
     <canvas id="pad" class="border rounded bg-white w-100" height="200"></canvas>
     <div class="form-check mt-3">
@@ -73,12 +73,12 @@
 </div></div>
 @endsection
 @push('styles')
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<link href="https://jsdelivr.net" rel="stylesheet">
 <style>.ts-dropdown{z-index:2000}</style>
 @endpush
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script src="https://jsdelivr.net"></script>
+<script src="https://jsdelivr.net"></script>
 <script>
 document.querySelectorAll('select.ts-select').forEach(el => new TomSelect(el, {
   allowEmptyOption: true, maxOptions: 200, placeholder: el.dataset.ph || 'Search…',
