@@ -80,7 +80,7 @@ class TravelRequest extends Model
     /** Freeze a copy of the signer's e-signature at the time of signing. */
     public function snapshotSignature(User $u, string $tag): string {
         $p = "signatures/req{$this->id}_{$tag}.png";
-        Storage::disk('public')->put($p, Storage::disk('public')->get($u->signature_path));
+        Storage::disk('s3')->put($p, Storage::disk('s3')->get($u->signature_path));
         return $p;
     }
 
@@ -98,10 +98,10 @@ class TravelRequest extends Model
     }
 
     // ---- Integrity: a hash chain over the document content at every signing event ----
-    public function memoAbsolutePath(): ?string {
+    public function memoSha256(): ?string {
         if (!$this->memo_path) return null;
-        foreach (['local', 'public'] as $disk) {
-            if (Storage::disk($disk)->exists($this->memo_path)) return Storage::disk($disk)->path($this->memo_path);
+        if (Storage::disk('s3')->exists($this->memo_path)) {
+            return hash('sha256', Storage::disk('s3')->get($this->memo_path));
         }
         return null;
     }
@@ -111,12 +111,11 @@ class TravelRequest extends Model
             $x = $this->party($k);
             $p[$k] = ['name' => $x['name'] ?? null, 'position' => $x['position'] ?? null, 'office' => $x['office'] ?? null];
         }
-        $memo = $this->memoAbsolutePath();
         return [
             'tracking_no' => $this->tracking_no, 'purpose' => $this->purpose, 'host_of_activity' => $this->host_of_activity,
             'destination' => $this->destination, 'date_from' => $this->date_from->toDateString(),
             'date_to' => $this->date_to->toDateString(), 'fund_source' => $this->fund_source,
-            'memo_sha256' => $memo ? hash_file('sha256', $memo) : null, 'parties' => $p,
+            'memo_sha256' => $this->memoSha256(), 'parties' => $p,
         ];
     }
     private function hashFor(string $event, array $parties, ?string $prev): string {
@@ -135,8 +134,8 @@ class TravelRequest extends Model
         $prev = SignatureLog::where('travel_request_id', $this->id)->orderByDesc('id')->value('document_hash');
         SignatureLog::create([
             'travel_request_id' => $this->id, 'user_id' => $u->id, 'event' => $event, 'parties' => $parties,
-            'signature_sha256' => $sigPath && Storage::disk('public')->exists($sigPath)
-                ? hash('sha256', Storage::disk('public')->get($sigPath)) : null,
+            'signature_sha256' => $sigPath && Storage::disk('s3')->exists($sigPath)
+                ? hash('sha256', Storage::disk('s3')->get($sigPath)) : null,
             'document_hash' => $this->hashFor($event, $parties, $prev),
             'ip_address' => $r->ip(), 'user_agent' => mb_substr((string) $r->userAgent(), 0, 255), 'signed_at' => now(),
         ]);
