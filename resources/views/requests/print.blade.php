@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>{{ $t->tracking_no }}</title>
-<link href="https://googleapis.com" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
 <style>
   @page{size:A4;margin:0}              /* margin 0 also removes the browser's date/URL header and footer */
   *{box-sizing:border-box}
@@ -92,7 +92,7 @@
   <div class="box">
     <i>I hereby attest that the information in this form and in the supporting documents attached hereto are true and correct.</i>
     <div class="row">
-      <div class="who"><div class="sig">@if($t->requester_signature)<img src="{{ Storage::disk('s3')->url($t->requester_signature) }}" alt="">@endif</div><div class="nm">{{ $req['name'] }}</div><div class="ds">{{ $req['position'] }}</div><div class="en">Electronically signed {{ $t->created_at->format('d/m/Y h:i A') }} to attest that the information in this form is true and correct</div></div>
+      <div class="who"><div class="sig"><img src="{{ Storage::disk('s3')->url($t->requester_signature) }}" alt=""></div><div class="nm">{{ $req['name'] }}</div><div class="ds">{{ $req['position'] }}</div><div class="en">Electronically signed {{ $t->created_at->format('d/m/Y h:i A') }} to attest that the information in this form is true and correct</div></div>
       <div class="dt"><div class="v">{{ $t->created_at->format('d/m/Y') }}</div><div class="ds">Date</div></div>
     </div>
   </div>
@@ -101,7 +101,7 @@
   <div class="box">
     <i>This is to certify that the trip of the requesting employee satisfies all the minimum conditions for authorized official travel and that alternatives to travel are insufficient for purpose stated herein.</i>
     <div class="row">
-      <div class="who"><div class="sig">@if($t->recommender_signature)<img src="{{ Storage::disk('s3')->url($t->recommender_signature) }}" alt="">@endif</div><div class="nm">{{ $rec['name'] }}</div><div class="ds">{{ $rec['position'] }}</div><div class="en">Electronically signed {{ $t->recommended_at?->format('d/m/Y h:i A') }} to certify and recommend approval</div></div>
+      <div class="who"><div class="sig"><img src="{{ Storage::disk('s3')->url($t->recommender_signature) }}}" alt=""></div><div class="nm">{{ $rec['name'] }}</div><div class="ds">{{ $rec['position'] }}</div><div class="en">Electronically signed {{ $t->recommended_at?->format('d/m/Y h:i A') }} to certify and recommend approval</div></div>
       <div class="dt"><div class="v">{{ $t->recommended_at?->format('d/m/Y') }}</div><div class="ds">Date</div></div>
     </div>
   </div>
@@ -110,7 +110,7 @@
   <div class="box">
     <div class="appr">APPROVED</div>
     <div class="row">
-      <div class="who"><div class="sig">@if($t->approver_signature)<img src="{{ Storage::disk('s3')->url($t->approver_signature) }}" alt="">@endif</div><div class="nm">{{ $app['name'] }}</div><div class="ds">{{ $app['position'] }}</div><div class="en">Electronically signed {{ $t->decided_at?->format('d/m/Y h:i A') }} to approve this travel authority</div></div>
+      <div class="who"><div class="sig"><img src="{{ Storage::disk('s3')->url($t->approver_signature) }}" alt=""></div><div class="nm">{{ $app['name'] }}</div><div class="ds">{{ $app['position'] }}</div><div class="en">Electronically signed {{ $t->decided_at?->format('d/m/Y h:i A') }} to approve this travel authority</div></div>
       <div class="dt"><div class="v">{{ $t->decided_at?->format('d/m/Y') }}</div><div class="ds">Date</div></div>
     </div>
   <div class="copy">This printout is a secondary copy. The original of this document is in electronic format and bears electronic signatures.
@@ -139,14 +139,14 @@
 @if($t->memoIsPdf())
 <div id="memoPages"></div>
 <p id="memoMsg" class="memo-note" style="text-align:center">Preparing the memo pages…</p>
-<script src="https://cloudflare.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 // Draw every page of the memo PDF onto its own A4 sheet so the whole memo prints (an embedded PDF viewer would not).
 (async function () {
   const msg = document.getElementById('memoMsg'), host = document.getElementById('memoPages'), btn = document.getElementById('printBtn');
   btn.disabled = true; btn.textContent = 'Preparing…';
   try {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cloudflare.com';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     const pdf = await pdfjsLib.getDocument({ url: @json($t->memoUrl()), withCredentials: true }).promise;
     for (let n = 1; n <= pdf.numPages; n++) {
       const page = await pdf.getPage(n);
@@ -162,3 +162,34 @@
     }
     msg.remove();
   } catch (e) {
+    msg.innerHTML = 'Could not load the memo pages here. <a href="{{ $t->memoUrl() }}" target="_blank">Open and print the memo separately</a>.';
+  }
+  btn.disabled = false; btn.textContent = 'Print';
+})();
+</script>
+@endif
+
+@if($t->verification_code)
+@include('partials.qr_script')
+<script>makeQr(document.getElementById('qr'), @json(route('verify', $t->verification_code)));</script>
+@endif
+
+<script>
+// Safety net: if the form is ever taller than the sheet, shrink it slightly so everything stays on ONE A4 page.
+function fitToPage() {
+  const body = document.querySelector('.page .body'), el = document.getElementById('fit');
+  el.style.transform = 'none'; el.style.width = 'auto'; el.style.flex = ''; el.style.height = '';
+  const avail = body.clientHeight, need = el.scrollHeight;
+  if (need > avail + 1) {
+    const z = Math.max(avail / need, 0.6);
+    el.style.transformOrigin = 'top left';
+    el.style.width = (100 / z) + '%';
+    el.style.flex = 'none';
+    el.style.height = (avail / z) + 'px';
+    el.style.transform = 'scale(' + z + ')';
+  }
+}
+window.addEventListener('load', fitToPage);
+window.addEventListener('beforeprint', fitToPage);
+</script>
+</body></html>
