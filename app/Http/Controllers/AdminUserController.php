@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Support\Files;
 use App\Models\{Position, School, SignatureLog, TravelRequest, User};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -50,7 +51,7 @@ class AdminUserController extends Controller
         if ($user->id === auth()->id() && $d['role'] !== 'admin') {
             return response()->json(['message' => 'You cannot remove your own administrator role.'], 422);
         }
-        if ($err = $this->applySchool($d, $user->id)) return response()->json(['message' => $err], 422);
+        if ($err = $this->applySchool($d, $user->id, $user->office)) return response()->json(['message' => $err], 422);
 
         if (!empty($d['position_id'])) $d['position'] = Position::find($d['position_id'])->title; else unset($d['position_id']);
         if (blank($d['password'] ?? null)) unset($d['password']); else $d['password'] = Hash::make($d['password']);
@@ -71,17 +72,20 @@ class AdminUserController extends Controller
         if ($hasRecords) {
             return response()->json(['message' => "{$user->name} has travel authority records, which must be kept for audit, so the account cannot be deleted."], 422);
         }
-        if ($user->signature_path) Storage::disk('public')->delete($user->signature_path);
+        Files::delete($user->signature_path);
         $user->delete();
         return response()->json(['message' => 'User deleted.']);
     }
 
     /** Teachers and School Heads belong to a school (one School Head per school); others need an office/unit. */
-    private function applySchool(array &$d, ?int $ignoreId = null): ?string
+    private function applySchool(array &$d, ?int $ignoreId = null, ?string $currentOffice = null): ?string
     {
         if (!in_array($d['role'], ['teacher', 'school_head'])) {
             $d['school_id'] = null;
-            return blank($d['office'] ?? null) ? 'Please enter the office / unit for this role.' : null;
+            if (blank($d['office'] ?? null)) return 'Please choose the office / unit for this role.';
+            $allowed = collect(config('offices.groups'))->flatten()->all();
+            if (!in_array($d['office'], $allowed) && $d['office'] !== $currentOffice) return 'Please choose an office from the list.';
+            return null;
         }
         if (blank($d['school_id'] ?? null)) return 'Teachers and School Heads must be assigned to a school.';
         $school = School::find($d['school_id']);

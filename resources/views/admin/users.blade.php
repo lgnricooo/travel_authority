@@ -7,7 +7,6 @@
   <b>Routing:</b> a <b>Teacher / school personnel</b> is routed automatically to the <b>School Head</b> of their school.
   For School Heads, SDO Personnel and Unit Heads, choose the recommending officer when editing.
 </div>
-<datalist id="offices"><option value="OSDS"><option value="CID"><option value="SGOD"></datalist>
 
 <div class="card shadow-sm"><div class="table-responsive"><table class="table align-middle mb-0 js-dt">
   <thead class="table-light"><tr><th>Name</th><th>Role</th><th>Position</th><th>School / Office</th><th>Recommending officer</th><th class="text-end">Actions</th></tr></thead>
@@ -80,7 +79,10 @@ $(document).on('click', '.btn-edit', function () {
   const u = JSON.parse(this.dataset.user), f = $('#editForm');
   f.attr('action', u.url);
   f.find('[name=name]').val(u.name); f.find('[name=email]').val(u.email); f.find('[name=password]').val('');
-  f.find('[name=role]').val(u.role); f.find('[name=office]').val(u.office || ''); f.find('[name=recommender_id]').val(u.recommender_id || '');
+  f.find('[name=role]').val(u.role); f.find('[name=recommender_id]').val(u.recommender_id || '');
+  const o = u.office || '';
+  if (o && !ts.edit_office.options[o]) ts.edit_office.addOption({ value: o, text: o + ' (current)' });
+  ts.edit_office.setValue(o, true);
   ts.edit_school.setValue(u.school_id || '', true); ts.edit_position.setValue(u.position_id || '', true);
   toggleRole('edit');
   $('#editTitle').text('Edit ' + u.name);

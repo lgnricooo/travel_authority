@@ -41,7 +41,7 @@
     <div class="col-md-6"><label class="form-label">Fund source</label>
       <input name="fund_source" class="form-control" list="funds" value="No expense to the government" required>
       <datalist id="funds"><option value="No expense to the government"><option value="MOOE"><option value="Local fund"><option value="Registration fee"></datalist></div>
-    <div class="col-md-6"><label class="form-label">Attach memo (PDF/JPG/PNG, max 5MB)</label><input type="file" name="memo" accept=".pdf,.jpg,.jpeg,.png" class="form-control"></div>
+    <div class="col-md-6"><label class="form-label">Attach memo <span class="text-danger">*</span> <span class="text-muted small">(PDF/JPG/PNG, max 4MB)</span></label><input type="file" name="memo" accept=".pdf,.jpg,.jpeg,.png" class="form-control" required></div>
     <div class="col-12 small text-muted">Routing: <b>{{ $u->resolveRecommender()?->name ?? 'No recommender assigned yet' }}</b> (recommending) → <b>SDS</b> (approval)</div>
     <div class="col-12">@include('requests._sign_fields', ['id' => 'new', 'purpose' => 'file this travel authority'])</div>
   </div>

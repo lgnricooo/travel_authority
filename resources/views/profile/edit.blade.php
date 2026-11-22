@@ -23,8 +23,8 @@
             @include('admin._school_options', ['selected' => $user->school_id])</select>
           @if($user->role === 'teacher')<div class="form-text">Your travel requests go to the School Head of the school you choose.</div>@endif
         @else
-          <input name="office" class="form-control" list="offices" value="{{ $user->office }}" required>
-          <datalist id="offices"><option value="OSDS"><option value="CID"><option value="SGOD"></datalist>
+          <select name="office" class="ts-select" data-ph="Search your office / unit…"><option value="">Search your office / unit…</option>
+            @include('partials.office_options', ['selected' => $user->office])</select>
         @endif</div>
 
       <div class="mb-3"><label class="form-label">Current password <span class="text-muted small">(only needed if you change your email)</span></label>

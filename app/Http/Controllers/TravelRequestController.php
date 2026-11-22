@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TravelRequest;
 use App\Models\User;
+use App\Support\Files;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -32,7 +33,11 @@ class TravelRequestController extends Controller
             'date_from' => 'required|date|after_or_equal:today',
             'date_to' => 'required|date|after_or_equal:date_from',
             'fund_source' => 'required|string|max:255',
-            'memo' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'memo' => 'required|file|mimes:pdf,jpg,jpeg,png|max:4096',
+        ], [
+            'memo.required' => 'Please attach the supporting memo (the purpose of travel must be supported by attachments).',
+            'memo.mimes' => 'The memo must be a PDF, JPG or PNG file.',
+            'memo.max' => 'The memo must not be larger than 4 MB.',
         ]);
         if (!$u->canRequest()) return $this->fail('Your account role cannot file a travel authority.');
         if ($p = $this->signerProblem($r, $u)) return $this->fail($p);
@@ -124,6 +129,14 @@ class TravelRequestController extends Controller
         abort(404);
     }
 
+    /** A signatory's e-signature image as frozen on this request (never a public URL). */
+    public function signature(TravelRequest $travelRequest, string $who)
+    {
+        abort_unless(in_array($who, ['requester', 'recommender', 'approver']), 404);
+        abort_unless($travelRequest->canView(auth()->user()), 403);
+        return Files::response($travelRequest->{$who . '_signature'}, $who . '-signature.png');
+    }
+
     public function print(TravelRequest $travelRequest)
     {
         abort_unless($travelRequest->canView(auth()->user()), 403);
@@ -142,6 +155,13 @@ class TravelRequestController extends Controller
         if (!$r->boolean('affirm')) return 'Please tick the affirmation to sign this document.';
         if (!Hash::check((string) $r->input('sign_password'), $u->password)) return 'Incorrect password. Signing requires your password.';
         return null;
+    }
+
+    private function storeMemo($file): string
+    {
+        $path = 'memos/' . Str::random(40) . '.' . strtolower($file->extension());
+        Files::put($path, file_get_contents($file->getRealPath()));
+        return $path;
     }
 
     private function fail(string $m, int $code = 422) { return response()->json(['message' => $m], $code); }

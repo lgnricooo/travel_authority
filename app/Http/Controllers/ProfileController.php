@@ -28,7 +28,8 @@ class ProfileController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'position_id' => 'required|exists:positions,id',
         ];
-        $rules += $schoolBased ? ['school_id' => 'required|exists:schools,id'] : ['office' => 'required|string|max:255'];
+        $allowedOffices = array_filter(array_merge(collect(config('offices.groups'))->flatten()->all(), [$user->office]));
+        $rules += $schoolBased ? ['school_id' => 'required|exists:schools,id'] : ['office' => ['required', 'string', 'max:255', Rule::in($allowedOffices)]];
         $d = $r->validate($rules);
 
         // Changing the login email needs the current password
