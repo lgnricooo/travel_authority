@@ -12,7 +12,7 @@
   @foreach($users as $x)
     <tr>
       <td>{{ $x->name }}<div class="small text-muted">{{ $x->roleLabel() }} • {{ $x->position }} • {{ $x->office }}</div></td>
-      <td><img src="{{ asset('storage/'.$x->signature_path) }}?v={{ $x->updated_at?->timestamp }}" class="border rounded bg-white p-1" style="max-height:60px"></td>
+      <td>@if($x->signature_path)<img src="{{ Storage::disk('s3')->url($x->signature_path) }}?v={{ $x->updated_at?->timestamp }}" class="border rounded bg-white p-1" style="max-height:60px">@endif</td>
       <td class="small">{!! $x->signature_undertaking_at ? $x->signature_undertaking_at->format('M d, Y') : '<span class="text-danger">None — must re-save</span>' !!}</td>
       <td>@if($x->signature_verified_at)<span class="badge text-bg-success">Verified</span><div class="small text-muted">{{ $x->signature_verified_at->format('M d, Y') }} by {{ $x->verifier?->name }}</div>
           @else<span class="badge text-bg-warning">Pending</span>@endif</td>
