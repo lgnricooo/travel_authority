@@ -52,6 +52,6 @@
   </div>
 </section>
 
-<footer class="text-center text-muted small py-5">© {{ date('Y') }} Schools Division Office of Tuguegarao City</footer>
+<footer class="text-center text-muted small py-5">© {{ date('Y') }} John Rico C. Toribio</footer>
 </body>
 </html>
